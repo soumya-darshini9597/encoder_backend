@@ -77,7 +77,7 @@ def filter_gear_value(request):
             {
                 'date': item.date.isoformat(),
                 'time': item.time.strftime('%H:%M:%S'),
-                'gear_value': item.value  # ✅ Corrected here
+                'gear_value': item.value 
             }
             for item in values
         ]
