@@ -80,13 +80,15 @@ WSGI_APPLICATION = 'gear_box.wsgi.application'
 DATABASES = {
     'default':{
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'encoderdb',                           
+        'NAME': 'encodertest',                           
         'USER': 'Vertoxlabs',
         'PASSWORD':'Vtx@2025',
         'HOST': 'bcpostgressqlserver.postgres.database.azure.com',
         'PORT': '5432',
     }
 }
+
+
 
 # DATABASES = {
 #     'default': {
