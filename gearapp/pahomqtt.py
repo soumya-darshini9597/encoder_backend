@@ -6,8 +6,6 @@ from .models import gear_value
 MQTT_BROKER = 'mqttbroker.bc-pl.com'
 MQTT_PORT = 1883  
 MQTT_TOPIC = ['factory/gearbox1/input/rpm', 'factory/gearbox1/out1/rpm', 'factory/gearbox1/out2/rpm','factory/gearbox1/out3/rpm','factory/gearbox1/out4/rpm']  # List of topics
-# MQTT_TOPIC = ['publish/1']
-
 MQTT_USER = 'mqttuser'
 MQTT_PASSWORD = 'Bfl@2025'
 
@@ -17,7 +15,7 @@ def on_connect(client, userdata, flags, rc):
         print("Connected to MQTT broker.")
         # Subscribe to each topic in the list
         for topic in MQTT_TOPIC:
-            client.subscribe(topic, qos=0)  # Subscribe to each topic with QoS 0 (you can change QoS if needed)
+            client.subscribe(topic, qos=0)  # Subscribe to each topic 
             print(f"Subscribed to topic: {topic}")
     else:
         print(f"Failed to connect. Code: {rc}")
@@ -30,14 +28,14 @@ def on_message(client, userdata, msg):
     try:
         # Delete all entries not from today
         today = date.today()
-        gear_value.objects.exclude(date=today).delete()
+        gear_value.objects.exclude(date=today).delete() 
 
         payload = msg.payload.decode('utf-8')
         values = f"{msg.topic} | {payload}"
         print(f"Storing: {values}")
 
         # Save new value
-        gear_value.objects.create(value=values)
+        gear_value.objects.create(value=values) 
 
     except Exception as e:
         print(f"Error processing message: {e}")
