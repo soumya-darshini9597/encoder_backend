@@ -1,8 +1,10 @@
 import time
 import paho.mqtt.client as mqtt
 from .models import gear_value  
+from datetime import date
+from gearapp.models import gear_value
 
-# MQTT Configuration
+
 MQTT_BROKER = 'mqttbroker.bc-pl.com'
 MQTT_PORT = 1883  
 MQTT_TOPIC = ['factory/gearbox1/input/rpm', 'factory/gearbox1/out1/rpm', 'factory/gearbox1/out2/rpm','factory/gearbox1/out3/rpm','factory/gearbox1/out4/rpm']  # List of topics
@@ -21,8 +23,14 @@ def on_connect(client, userdata, flags, rc):
         print(f"Failed to connect. Code: {rc}")
 
 
-from datetime import date
-from gearapp.models import gear_value
+
+topic_aliases = {
+    "factory/gearbox1/input/rpm": "Input_rpm",
+    "factory/gearbox1/out1/rpm": "Output1_rpm",
+    "factory/gearbox1/out2/rpm": "Output2_rpm",
+    "factory/gearbox1/out3/rpm": "Output3_rpm",
+    "factory/gearbox1/out4/rpm": "Output4_rpm",
+}
 
 def on_message(client, userdata, msg):
     try:
@@ -31,15 +39,23 @@ def on_message(client, userdata, msg):
         gear_value.objects.exclude(date=today).delete() 
 
         payload = msg.payload.decode('utf-8')
-        values = f"{msg.topic} | {payload}"
+
+        # Get the alias for the topic or keep the original topic if no alias exists
+        topic_alias = topic_aliases.get(msg.topic, msg.topic)
+
+        # Create the new value format
+        values = f"{topic_alias} : {payload}"
         print(f"Storing: {values}")
 
-        # Save new value
+        # Save the new value
         gear_value.objects.create(value=values) 
+
+        # Delete all entries not from today
+        today = date.today()
+        gear_value.objects.exclude(date=today).delete() 
 
     except Exception as e:
         print(f"Error processing message: {e}")
-
 
         
 
@@ -59,7 +75,7 @@ def mqtt_connect():
 
     try:
         while True:
-            time.sleep(1)  # Keep the loop running
+            time.sleep(1)
     except KeyboardInterrupt:
         print("Stopped by user.")
         client.loop_stop()

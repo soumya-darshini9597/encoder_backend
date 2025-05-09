@@ -1,12 +1,13 @@
+import json
+import csv
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-import csv
 from .models import gear_value
 from django.http import JsonResponse
-import json
 from django.utils.timezone import now, make_aware
 from datetime import datetime
 from datetime import timedelta
+from gearapp.models import gear_value
 
 
 
@@ -16,12 +17,6 @@ def gear_value_view(request):
         try:
             body = json.loads(request.body)
             value_val = body.get('value', '')
-
-            if not value_val:
-                return JsonResponse({'error': 'Missing "gear_value" field.'}, status=400)
-
-            # Save the value
-            gear_value.objects.create(value=value_val)
 
             # Return all entries
             all_data = gear_value.objects.all().order_by('date', 'time')
@@ -44,6 +39,7 @@ def gear_value_view(request):
         all_data = gear_value.objects.all().order_by('date', 'time')
         result = [
             {
+
                 'date': data.date.isoformat(),
                 'time': data.time.strftime('%H:%M:%S'),
                 'value': data.value
@@ -53,6 +49,7 @@ def gear_value_view(request):
         return JsonResponse(result, safe=False)
 
     return JsonResponse({'error': 'Only GET and POST allowed'}, status=405)
+
 
 
 @csrf_exempt
