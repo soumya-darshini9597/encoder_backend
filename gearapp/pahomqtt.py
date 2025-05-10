@@ -34,10 +34,6 @@ topic_aliases = {
 
 def on_message(client, userdata, msg):
     try:
-        # Delete all entries not from today
-        today = date.today()
-        gear_value.objects.exclude(date=today).delete() 
-
         payload = msg.payload.decode('utf-8')
 
         # Get the alias for the topic or keep the original topic if no alias exists

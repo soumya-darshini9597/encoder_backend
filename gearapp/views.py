@@ -39,7 +39,6 @@ def gear_value_view(request):
         all_data = gear_value.objects.all().order_by('date', 'time')
         result = [
             {
-
                 'date': data.date.isoformat(),
                 'time': data.time.strftime('%H:%M:%S'),
                 'value': data.value
