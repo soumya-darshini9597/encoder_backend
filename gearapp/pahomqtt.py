@@ -22,8 +22,8 @@ MQTT_USER = 'mqttuser'
 MQTT_PASSWORD = 'Bfl@2025'
 
 # Telegram Configuration
-TELEGRAM_BOT_TOKEN = '7435739922:AAGr2GxWSued2YFaMgzNnh9fJ98CMpqeCkQ'
-TELEGRAM_CHAT_IDS = [-1002690273043]
+TELEGRAM_BOT_TOKEN = '7119219406:AAHsLe6kqLiQmJMeTPCnYR3rg15__lvr92k'
+TELEGRAM_CHAT_IDS = [-1002559440335]
 
 # Globals
 last_message_time = datetime.now()
