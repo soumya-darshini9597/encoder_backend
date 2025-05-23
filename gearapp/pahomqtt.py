@@ -23,9 +23,10 @@ MQTT_PASSWORD = 'Bfl@2025'
 
 # Telegram Configuration
 TELEGRAM_BOT_TOKEN = '7119219406:AAHsLe6kqLiQmJMeTPCnYR3rg15__lvr92k'
-TELEGRAM_CHAT_IDS = [-1002559440335]
+TELEGRAM_GROUPCHAT_IDS = [-1002559440335]
 
-# Globals
+
+#Globals
 last_message_time = datetime.now()
 alert_sent = False
 data_message_sent = False
@@ -54,7 +55,7 @@ async def async_send_message(bot, chat_id, message):
         print(f"❌ Telegram error: {e}")
 
 def send_telegram_message(message):
-    for chat_id in TELEGRAM_CHAT_IDS:
+    for chat_id in TELEGRAM_GROUPCHAT_IDS:
         asyncio.run(async_send_message(bot, chat_id, message))
 
 def save_last_input_rpm(value):
@@ -97,18 +98,16 @@ def on_message(client, userdata, msg):
         except ValueError:
             return
 
-        # Only save Input RPM after restart if it's NOT zero
         if msg.topic == 'factory/gearbox1/input/rpm':
             if current_rpm == 0.0 and not first_data_received:
                 print("⚠️ Skipping 0.0 RPM after restart (waiting for valid RPM)")
                 return
 
-            last_input_rpm = current_rpm
             last_rpm_received = current_rpm
 
             if not data_message_sent:
                 send_telegram_message(
-                    f"\U0001F4CANew Data received (Input_rpm)\n"
+                    f"\U0001F4CA New Data received\n"
                     f"Time: {datetime.now().strftime('%H:%M:%S')}\n"
                     f"Status: ✅ Connecting\n"
                     f"First Input RPM after restart: {current_rpm}"
@@ -122,12 +121,7 @@ def on_message(client, userdata, msg):
 
                 if last_rpm_before_restart is not None:
                     rpm_diff = abs(first_rpm_after_restart - last_rpm_before_restart)
-                    if rpm_diff > 20:
-                        condition_text = ">= 20"
-                    elif rpm_diff < 20:
-                        condition_text = "<= 20"
-                    else:
-                        condition_text = "== 20"
+                    condition_text = ">= 20" if rpm_diff > 20 else "<= 20"
 
                     message = (
                         f"\U0001F501 Server Restarted\n"
@@ -142,6 +136,26 @@ def on_message(client, userdata, msg):
 
                 first_data_received = True
 
+        if msg.topic == 'factory/gearbox1/input/rpm':
+            if current_rpm == 0.0 and not first_data_received:
+                print("⚠️ First RPM is 0.0 — waiting for valid data")
+                return
+            # Detect RPM changes after first data received
+            if last_input_rpm is not None:
+                rpm_difference = abs(current_rpm - last_input_rpm)
+                if rpm_difference > 20:
+                    message = (
+                        f"📈 Input RPM Change Detected\n"
+                        f"Old Input RPM : {last_input_rpm}\n"
+                        f"New Input RPM : {current_rpm}\n"
+                        )
+                    send_telegram_message(message)
+                    print(f"✅ Telegram alert sent:\n{message}")
+
+
+            last_input_rpm = current_rpm
+            last_rpm_received = current_rpm
+
         # Save all data including 0.0 for other topics
         formatted_value = f"{current_rpm:.2f}"
         print(f"Saving to DB: {topic_alias} : {formatted_value}")
@@ -153,6 +167,7 @@ def on_message(client, userdata, msg):
 
     except Exception as e:
         print(f"❌ Error processing MQTT message: {e}")
+
 
 def mqtt_connect():
     global last_message_time, alert_sent, data_message_sent, last_input_rpm, first_data_received
@@ -182,7 +197,8 @@ def mqtt_connect():
                     if last_rpm_received is not None:
                         save_last_input_rpm(last_rpm_received)
                         message = (
-                            f"⚠️ No data received since {last_message_time.strftime('%H:%M:%S')} (❌ Disconnect)\n"
+                            f"⚠️ No data received since {last_message_time.strftime('%H:%M:%S')}\n"
+                            f"Status: ❌ Disconnect\n"
                             f"Last Input RPM before Disconnect: {last_rpm_received}"
                         )
                     else:
@@ -230,3 +246,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
